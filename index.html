@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="theme-color" content="#1a6fe8"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<link rel="manifest" href="manifest.json"/>
+<title>AttendPro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --blue:#1a6fe8;--blue-dark:#1458c0;--blue-light:#e8f1fd;
+  --green:#16a34a;--green-light:#dcfce7;
+  --red:#dc2626;--red-light:#fee2e2;
+  --amber:#d97706;--amber-light:#fef3c7;
+  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;
+  --gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;
+  --gray-700:#374151;--gray-800:#1f2937;--gray-900:#111827;
+  --white:#ffffff;--radius:14px;--radius-sm:10px;--radius-xs:8px;
+  --shadow:0 2px 12px rgba(0,0,0,0.08);
+  --font:'DM Sans',sans-serif;
+}
+body{font-family:var(--font);background:var(--gray-50);color:var(--gray-800);min-height:100vh;overflow-x:hidden}
+.screen{display:none;min-height:100vh;flex-direction:column;animation:fadeIn .25s ease}
+.screen.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── LOGIN / REGISTER ── */
+#screen-login,#screen-register{background:var(--white);justify-content:center;align-items:center;padding:2rem 1.5rem;overflow-y:auto}
+.login-logo{width:72px;height:72px;background:var(--blue);border-radius:20px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;flex-shrink:0}
+.login-logo svg{width:38px;height:38px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round}
+.login-title{font-size:1.6rem;font-weight:700;color:var(--gray-900);margin-bottom:.3rem;text-align:center}
+.login-sub{font-size:.9rem;color:var(--gray-500);text-align:center;margin-bottom:2rem}
+.form-group{width:100%;margin-bottom:1rem}
+.form-group label{display:block;font-size:.8rem;font-weight:600;color:var(--gray-600);margin-bottom:.4rem;letter-spacing:.02em;text-transform:uppercase}
+.form-group input{width:100%;padding:.8rem 1rem;border:1.5px solid var(--gray-200);border-radius:var(--radius-xs);font-size:.95rem;font-family:var(--font);color:var(--gray-900);background:var(--gray-50);transition:border-color .2s,box-shadow .2s;outline:none}
+.form-group input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,111,232,.12);background:var(--white)}
+.btn{width:100%;padding:.9rem;border:none;border-radius:var(--radius-xs);font-size:1rem;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:.5rem}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-dark)}
+.btn-primary:active{transform:scale(.98)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-success{background:var(--green);color:#fff}
+.btn-outline{background:var(--white);color:var(--blue);border:1.5px solid var(--blue)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
+.login-status{display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--green);margin-top:1.2rem;justify-content:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.dot.offline{background:var(--amber)}
+.auth-switch{text-align:center;margin-top:1rem;font-size:.88rem;color:var(--gray-500)}
+.auth-switch span{color:var(--blue);cursor:pointer;font-weight:600;text-decoration:underline}
+.login-err{background:var(--red-light);color:var(--red);font-size:.85rem;padding:.7rem 1rem;border-radius:var(--radius-xs);margin-bottom:.8rem;text-align:center;display:none}
+.login-ok{background:var(--green-light);color:var(--green);font-size:.85rem;padding:.7rem 1rem;border-radius:var(--radius-xs);margin-bottom:.8rem;text-align:center;display:none}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--blue);padding:1rem 1.2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-left{display:flex;flex-direction:column}
+.topbar-greeting{font-size:.75rem;color:rgba(255,255,255,.75);font-weight:400}
+.topbar-name{font-size:1rem;font-weight:700;color:#fff}
+.topbar-date{font-size:.72rem;color:rgba(255,255,255,.65)}
+.avatar{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;color:#fff;border:2px solid rgba(255,255,255,.4);cursor:pointer;flex-shrink:0}
+.offline-badge{background:var(--amber);color:#fff;font-size:.7rem;font-weight:700;padding:.2rem .55rem;border-radius:20px;display:flex;align-items:center;gap:.3rem}
+
+/* ── STAT CARDS ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;padding:.9rem 1rem .5rem}
+.stat-card{background:var(--white);border-radius:var(--radius-sm);padding:.7rem .5rem;text-align:center;border:1.5px solid var(--gray-100);box-shadow:var(--shadow)}
+.stat-num{font-size:1.5rem;font-weight:700;color:var(--gray-900)}
+.stat-num.green{color:var(--green)}
+.stat-num.red{color:var(--red)}
+.stat-num.amber{color:var(--amber)}
+.stat-lbl{font-size:.68rem;color:var(--gray-500);margin-top:.1rem;font-weight:500}
+
+/* ── ATTENDANCE BAR ── */
+.attend-bar-wrap{padding:.2rem 1rem .8rem}
+.attend-bar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem}
+.attend-bar-title{font-size:.8rem;font-weight:600;color:var(--gray-700)}
+.attend-bar-pct{font-size:.8rem;font-weight:700;color:var(--blue)}
+.bar-bg{height:8px;background:var(--gray-100);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;background:var(--blue);border-radius:99px;transition:width .8s ease}
+.attend-bar-sub{font-size:.72rem;color:var(--gray-500);margin-top:.3rem}
+
+.section-title{font-size:.75rem;font-weight:700;color:var(--gray-500);letter-spacing:.06em;text-transform:uppercase;padding:.2rem 1rem .5rem}
+
+/* ── RECENT LIST ── */
+.recent-list{padding:0 1rem;display:flex;flex-direction:column;gap:.5rem}
+.record-item{background:var(--white);border-radius:var(--radius-sm);padding:.75rem 1rem;display:flex;align-items:center;gap:.8rem;border:1.5px solid var(--gray-100);box-shadow:var(--shadow)}
+.record-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;flex-shrink:0}
+.record-info{flex:1;min-width:0}
+.record-name{font-size:.9rem;font-weight:600;color:var(--gray-900)}
+.record-time{font-size:.75rem;color:var(--gray-500)}
+.badge{font-size:.7rem;font-weight:700;padding:.25rem .6rem;border-radius:20px;flex-shrink:0}
+.badge-in{background:var(--green-light);color:var(--green)}
+.badge-out{background:var(--red-light);color:var(--red)}
+
+/* ── NAVBAR ── */
+.navbar{background:var(--white);border-top:1.5px solid var(--gray-100);display:flex;position:sticky;bottom:0;z-index:100;box-shadow:0 -2px 12px rgba(0,0,0,.06)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:.6rem .3rem;cursor:pointer;transition:color .2s;color:var(--gray-400);gap:.2rem;position:relative}
+.nav-item.active{color:var(--blue)}
+.nav-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;flex-shrink:0}
+.nav-lbl{font-size:.62rem;font-weight:600}
+
+/* ── REGISTRO ── */
+.register-wrap{flex:1;padding:1rem;display:flex;flex-direction:column;gap:.8rem;overflow-y:auto}
+.search-box{position:relative}
+.search-box input{width:100%;padding:.75rem 1rem .75rem 2.8rem;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:.9rem;font-family:var(--font);color:var(--gray-900);background:var(--white);outline:none;transition:border-color .2s}
+.search-box input:focus{border-color:var(--blue)}
+.search-icon{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--gray-400);fill:none;stroke-width:2;stroke-linecap:round}
+.found-user{background:var(--white);border-radius:var(--radius-sm);padding:1rem;border:2px solid var(--blue);box-shadow:var(--shadow)}
+.found-user-top{display:flex;align-items:center;gap:.8rem;margin-bottom:.8rem}
+.found-user-info h3{font-size:.95rem;font-weight:700;color:var(--gray-900)}
+.found-user-info p{font-size:.75rem;color:var(--gray-500)}
+.status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:.3rem}
+.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+
+/* ── HISTORIAL ── */
+.hist-wrap{flex:1;padding:1rem;display:flex;flex-direction:column;gap:.8rem;overflow-y:auto}
+.filter-tabs{display:flex;gap:.4rem}
+.tab{padding:.4rem .9rem;border-radius:20px;font-size:.8rem;font-weight:600;cursor:pointer;border:1.5px solid var(--gray-200);color:var(--gray-600);background:var(--white);transition:all .2s}
+.tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.hist-list{display:flex;flex-direction:column;gap:.5rem}
+.hist-item{background:var(--white);border-radius:var(--radius-sm);padding:.8rem 1rem;display:flex;align-items:center;gap:.8rem;border:1.5px solid var(--gray-100)}
+.hist-info{flex:1}
+.hist-name{font-size:.88rem;font-weight:600;color:var(--gray-900)}
+.hist-time{font-size:.72rem;color:var(--gray-500)}
+.hist-badge-pending{background:var(--amber-light);color:var(--amber);font-size:.68rem;font-weight:700;padding:.2rem .5rem;border-radius:20px}
+
+/* ── CONFIG ── */
+.config-wrap{flex:1;padding:1rem;display:flex;flex-direction:column;gap:.8rem;overflow-y:auto}
+.config-section{background:var(--white);border-radius:var(--radius-sm);border:1.5px solid var(--gray-100);overflow:hidden}
+.config-section-title{font-size:.72rem;font-weight:700;color:var(--gray-500);letter-spacing:.06em;text-transform:uppercase;padding:.7rem 1rem;border-bottom:1.5px solid var(--gray-100)}
+.config-item{display:flex;align-items:center;gap:.8rem;padding:.85rem 1rem;border-bottom:1px solid var(--gray-100);cursor:pointer;transition:background .15s}
+.config-item:last-child{border-bottom:none}
+.config-item:hover{background:var(--gray-50)}
+.config-item-icon{width:36px;height:36px;border-radius:var(--radius-xs);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.config-item-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round}
+.config-item-text{flex:1}
+.config-item-label{font-size:.88rem;font-weight:600;color:var(--gray-900)}
+.config-item-sub{font-size:.72rem;color:var(--gray-500)}
+.config-chevron{width:16px;height:16px;stroke:var(--gray-400);fill:none;stroke-width:2;stroke-linecap:round}
+.emergency-btn{background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);padding:1rem 1.2rem;font-size:.95rem;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;width:100%;transition:background .2s}
+.emergency-btn:hover{background:#b91c1c}
+.emergency-btn svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round}
+.emergency-number-input{display:flex;gap:.5rem;align-items:center}
+.emergency-number-input input{flex:1;padding:.75rem 1rem;border:1.5px solid var(--gray-200);border-radius:var(--radius-xs);font-size:.9rem;font-family:var(--font);color:var(--gray-900);outline:none}
+.emergency-save{background:var(--red);color:#fff;border:none;border-radius:var(--radius-xs);padding:.75rem 1rem;font-weight:700;font-family:var(--font);cursor:pointer;font-size:.85rem;white-space:nowrap}
+
+/* ── OFFLINE CARD ── */
+.offline-card{background:var(--white);border-radius:var(--radius-sm);padding:1rem;border:1.5px solid var(--gray-100);box-shadow:var(--shadow)}
+.offline-card h3{font-size:.9rem;font-weight:700;color:var(--gray-900);margin-bottom:.8rem}
+.offline-alert{background:var(--amber-light);border:1.5px solid #fde68a;border-radius:var(--radius-sm);padding:.8rem 1rem;display:flex;align-items:flex-start;gap:.6rem}
+.offline-alert-icon{width:20px;height:20px;stroke:var(--amber);fill:none;stroke-width:2;flex-shrink:0;margin-top:.1rem}
+.offline-alert-text p{font-size:.82rem;font-weight:600;color:var(--amber)}
+.offline-alert-text span{font-size:.75rem;color:#92400e}
+.pending-list{display:flex;flex-direction:column;gap:.4rem}
+.pending-item{display:flex;align-items:center;justify-content:space-between;padding:.6rem .8rem;background:var(--gray-50);border-radius:var(--radius-xs);border:1px solid var(--gray-200)}
+.pending-item-name{font-size:.82rem;font-weight:600;color:var(--gray-800)}
+.pending-item-time{font-size:.72rem;color:var(--gray-500)}
+.sync-btn{background:var(--blue-light);color:var(--blue);border:none;border-radius:var(--radius-xs);padding:.7rem 1rem;font-size:.85rem;font-weight:700;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%}
+.offline-time-display{font-family:'DM Mono',monospace;font-size:2.2rem;font-weight:500;color:var(--gray-900);text-align:center;padding:.5rem 0;letter-spacing:.05em}
+.offline-time-sub{font-size:.75rem;color:var(--gray-500);text-align:center;margin-bottom:.8rem}
+.offline-wrap{flex:1;padding:1rem;display:flex;flex-direction:column;gap:.8rem;overflow-y:auto}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:20px 20px 0 0;padding:1.5rem;width:100%;max-width:480px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--gray-200);border-radius:99px;margin:0 auto 1.2rem}
+.modal-title{font-size:1.05rem;font-weight:700;color:var(--gray-900);margin-bottom:1rem}
+.modal-body{font-size:.9rem;color:var(--gray-600);line-height:1.6;margin-bottom:1.2rem}
+.modal-actions{display:flex;gap:.6rem}
+.profile-modal{background:var(--white);border-radius:20px 20px 0 0;padding:1.5rem;width:100%;max-width:480px;animation:slideUp .3s ease}
+.profile-avatar-lg{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;margin:0 auto 1rem;color:#fff}
+.profile-name-lg{font-size:1.1rem;font-weight:700;color:var(--gray-900);text-align:center}
+.profile-role{font-size:.82rem;color:var(--gray-500);text-align:center;margin-bottom:1.2rem}
+.profile-row{display:flex;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--gray-100);font-size:.85rem}
+.profile-row:last-child{border:none}
+.profile-row span:first-child{color:var(--gray-500)}
+.profile-row span:last-child{color:var(--gray-900);font-weight:600}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gray-900);color:#fff;padding:.7rem 1.2rem;border-radius:20px;font-size:.85rem;font-weight:500;z-index:300;opacity:0;transition:all .3s;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── SPINNER ── */
+.spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.spinning{animation:spin 1s linear infinite}
+
+/* ── PWA INSTALL BANNER ── */
+.pwa-banner{background:var(--blue);color:#fff;padding:.8rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:.8rem;font-size:.82rem;display:none}
+.pwa-banner.show{display:flex}
+.pwa-banner-text{flex:1}
+.pwa-banner-text strong{display:block;font-weight:700}
+.pwa-install-btn{background:#fff;color:var(--blue);border:none;border-radius:var(--radius-xs);padding:.45rem .9rem;font-size:.8rem;font-weight:700;font-family:var(--font);cursor:pointer;white-space:nowrap}
+.pwa-dismiss{background:none;border:none;color:rgba(255,255,255,.7);font-size:1.2rem;cursor:pointer;padding:0 .2rem}
+</style>
+</head>
+<body>
+
+<!-- PWA Install Banner -->
+<div class="pwa-banner" id="pwa-banner">
+  <div class="pwa-banner-text">
+    <strong>Instalar AttendPro</strong>
+    Agrégala a tu pantalla de inicio
+  </div>
+  <button class="pwa-install-btn" id="pwa-install-btn">Instalar</button>
+  <button class="pwa-dismiss" onclick="document.getElementById('pwa-banner').classList.remove('show')">✕</button>
+</div>
+
+<!-- ══ LOGIN ══ -->
+<div id="screen-login" class="screen active">
+  <div class="login-logo">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+  </div>
+  <h1 class="login-title">AttendPro</h1>
+  <p class="login-sub">Control de asistencia profesional</p>
+  <div style="width:100%;max-width:360px">
+    <div id="login-error" class="login-err">Usuario o contraseña incorrectos</div>
+    <div class="form-group">
+      <label>Usuario</label>
+      <input type="text" id="inp-user" placeholder="tu_nombre_area" autocomplete="username"/>
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="btn btn-primary" id="btn-login" onclick="doLogin()">
+      <span id="btn-login-text">→ Iniciar sesión</span>
+    </button>
+
+    <div class="login-status" id="login-status-dot">
+      <div class="dot" id="online-dot"></div>
+      <span id="online-label">Verificando conexión...</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CREAR CUENTA ══ (deshabilitado) -->
+<div id="screen-register" class="screen" style="display:none!important">
+  <div class="login-logo" style="margin-top:2rem">
+    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+  </div>
+  <h1 class="login-title">Crear cuenta</h1>
+  <p class="login-sub">Regístrate para usar AttendPro</p>
+  <div style="width:100%;max-width:360px">
+    <div id="reg-error" class="login-err"></div>
+    <div id="reg-ok" class="login-ok"></div>
+    <div class="form-group">
+      <label>Nombre completo</label>
+      <input type="text" id="reg-nombre" placeholder="Ej: María Vázquez" autocomplete="name" oninput="generarUsuario()"/>
+    </div>
+    <div class="form-group">
+      <label>Área / Departamento</label>
+      <input type="text" id="reg-area" placeholder="Ej: Ventas, Finanzas..." oninput="generarUsuario()"/>
+    </div>
+    <div class="form-group">
+      <label>Usuario (generado automáticamente)</label>
+      <input type="text" id="reg-user" placeholder="Se genera al escribir" readonly
+        style="background:var(--gray-100);color:var(--gray-600);cursor:not-allowed;font-family:'DM Mono',monospace;font-size:.85rem"/>
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="reg-pass" placeholder="Mínimo 4 caracteres" autocomplete="new-password"/>
+    </div>
+    <button class="btn btn-primary" id="btn-register" onclick="doRegisterUser()">
+      <span id="btn-reg-text">✓ Crear mi cuenta</span>
+    </button>
+    <div class="auth-switch" style="margin-top:1rem">
+      ¿Ya tienes cuenta? <span onclick="showLoginScreen()">Iniciar sesión</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="screen-dashboard" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-greeting" id="tb-greeting">Buenos días,</span>
+      <span class="topbar-name" id="tb-name">—</span>
+      <span class="topbar-date" id="tb-date"></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:.6rem">
+      <div id="offline-topbadge" class="offline-badge" style="display:none">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39"/></svg>
+        Offline
+      </div>
+      <div class="avatar" id="user-avatar" onclick="openProfile()">--</div>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num green" id="stat-presentes">0</div><div class="stat-lbl">Presentes</div></div>
+    <div class="stat-card"><div class="stat-num red" id="stat-ausentes">0</div><div class="stat-lbl">Ausentes</div></div>
+    <div class="stat-card"><div class="stat-num amber" id="stat-pendientes">0</div><div class="stat-lbl">Pendientes</div></div>
+  </div>
+  <div class="attend-bar-wrap">
+    <div class="attend-bar-header">
+      <span class="attend-bar-title">Asistencia del día</span>
+      <span class="attend-bar-pct" id="bar-pct">0%</span>
+    </div>
+    <div class="bar-bg"><div class="bar-fill" id="bar-fill" style="width:0%"></div></div>
+    <div class="attend-bar-sub" id="bar-sub">cargando...</div>
+  </div>
+  <div class="section-title">Últimos registros</div>
+  <div class="recent-list" id="recent-list">
+    <div style="text-align:center;padding:1rem;color:var(--gray-400);font-size:.85rem">Sin registros aún</div>
+  </div>
+  <div style="height:1rem"></div>
+  <div class="navbar">
+    <div class="nav-item active" onclick="goTab('dashboard')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span class="nav-lbl">Inicio</span>
+    </div>
+    <div class="nav-item" onclick="goTab('registro')">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="nav-lbl">Registrar</span>
+    </div>
+    <div class="nav-item" onclick="goTab('historial')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span class="nav-lbl">Historial</span>
+    </div>
+    <div class="nav-item" onclick="goTab('config')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <span class="nav-lbl">Config</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REGISTRO ASISTENCIA ══ -->
+<div id="screen-registro" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-name">Registrar asistencia</span>
+      <span class="topbar-date">Entrada y salida del personal</span>
+    </div>
+  </div>
+  <div class="register-wrap">
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="search-user" placeholder="Buscar colaborador..." oninput="searchUser(this.value)"/>
+    </div>
+    <div id="found-user-card" style="display:none" class="found-user">
+      <div class="found-user-top">
+        <div id="fu-avatar" style="background:var(--blue-light);color:var(--blue);width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;flex-shrink:0"></div>
+        <div class="found-user-info">
+          <h3 id="fu-name"></h3>
+          <p id="fu-role"></p>
+          <p style="font-size:.72rem;margin-top:.1rem"><span class="status-dot" id="fu-dot"></span><span id="fu-status"></span></p>
+        </div>
+      </div>
+      <div class="action-btns" style="display:none"></div>
+    </div>
+    <div style="text-align:center;color:var(--gray-400);font-size:.78rem;padding:.3rem 0">— o registra con credenciales —</div>
+    <div class="offline-card">
+      <h3>Registro con contraseña</h3>
+      <div class="form-group" style="margin-bottom:.7rem">
+        <label>Usuario</label>
+        <input type="text" id="manual-user" placeholder="tu_usuario"/>
+      </div>
+      <div class="form-group" style="margin-bottom:.7rem">
+        <label>Contraseña</label>
+        <input type="password" id="manual-pass" placeholder="••••••••"/>
+      </div>
+      <div class="form-group" style="margin-bottom:.7rem">
+        <label>Hora (vacío = ahora)</label>
+        <input type="time" id="manual-time"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+        <button class="btn btn-success" onclick="doManualRegister('entrada')">→ Entrada</button>
+        <button class="btn btn-danger" onclick="doManualRegister('salida')">← Salida</button>
+      </div>
+    </div>
+    <div style="height:.5rem"></div>
+  </div>
+  <div class="navbar">
+    <div class="nav-item" onclick="goTab('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="nav-lbl">Inicio</span></div>
+    <div class="nav-item active" onclick="goTab('registro')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-lbl">Registrar</span></div>
+    <div class="nav-item" onclick="goTab('historial')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg><span class="nav-lbl">Historial</span></div>
+    <div class="nav-item" onclick="goTab('config')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span class="nav-lbl">Config</span></div>
+  </div>
+</div>
+
+<!-- ══ HISTORIAL ══ -->
+<div id="screen-historial" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-name">Historial del día</span>
+      <span class="topbar-date" id="hist-sync-label">—</span>
+    </div>
+  </div>
+  <div class="hist-wrap">
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="hist-search" placeholder="Buscar registro..." oninput="filterHistory()"/>
+    </div>
+    <div class="filter-tabs">
+      <div class="tab active" id="tab-all" onclick="setHistFilter('all')">Todos</div>
+      <div class="tab" id="tab-in" onclick="setHistFilter('entrada')">Entradas</div>
+      <div class="tab" id="tab-out" onclick="setHistFilter('salida')">Salidas</div>
+      <div class="tab" id="tab-pend" onclick="setHistFilter('pending')">Pendientes</div>
+    </div>
+    <div class="hist-list" id="hist-list">
+      <div style="text-align:center;padding:2rem;color:var(--gray-400);font-size:.85rem">Sin registros</div>
+    </div>
+  </div>
+  <div class="navbar">
+    <div class="nav-item" onclick="goTab('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="nav-lbl">Inicio</span></div>
+    <div class="nav-item" onclick="goTab('registro')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-lbl">Registrar</span></div>
+    <div class="nav-item active" onclick="goTab('historial')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg><span class="nav-lbl">Historial</span></div>
+    <div class="nav-item" onclick="goTab('config')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span class="nav-lbl">Config</span></div>
+  </div>
+</div>
+
+<!-- ══ CONFIG ══ -->
+<div id="screen-config" class="screen">
+  <div class="topbar">
+    <div class="topbar-left"><span class="topbar-name">Configuración</span></div>
+  </div>
+  <div class="config-wrap">
+    <div class="config-section">
+      <div class="config-section-title">Google Sheets</div>
+      <div class="config-item" style="cursor:default">
+        <div class="config-item-icon" style="background:#e8f5e9;color:#16a34a">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+        </div>
+        <div class="config-item-text">
+          <div class="config-item-label">Conexión al sistema</div>
+          <div id="sheets-connection-status" class="config-item-sub">Verificando...</div>
+        </div>
+        <button onclick="testConnection()" style="background:var(--blue-light);color:var(--blue);border:none;border-radius:var(--radius-xs);padding:.4rem .8rem;font-size:.75rem;font-weight:700;font-family:var(--font);cursor:pointer">Probar</button>
+      </div>
+    </div>
+    <div class="config-section">
+      <div class="config-section-title">WhatsApp de emergencia</div>
+      <div style="padding:.8rem 1rem">
+        <div class="emergency-number-input" style="margin-bottom:.7rem">
+          <input type="tel" id="emergency-number" placeholder="+52 221 902 6169" value="+522219026169"/>
+          <button class="emergency-save" onclick="saveEmergencyNumber()">Guardar</button>
+        </div>
+        <button class="emergency-btn" onclick="openWhatsApp()">
+          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+          Contactar vía WhatsApp
+        </button>
+      </div>
+    </div>
+    <div class="config-section">
+      <div class="config-section-title">Perfil y sesión</div>
+      <div class="config-item" onclick="openProfile()">
+        <div class="config-item-icon" style="background:var(--blue-light);color:var(--blue)">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="config-item-text">
+          <div class="config-item-label" id="cfg-username">Mi perfil</div>
+          <div class="config-item-sub" id="cfg-usersub">Ver información</div>
+        </div>
+        <svg class="config-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="config-item" onclick="doLogout()">
+        <div class="config-item-icon" style="background:var(--red-light);color:var(--red)">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </div>
+        <div class="config-item-text">
+          <div class="config-item-label">Cerrar sesión</div>
+          <div class="config-item-sub">Salir de esta cuenta</div>
+        </div>
+        <svg class="config-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:.72rem;color:var(--gray-400);padding:.5rem">AttendPro v2.2 · PWA Ready</div>
+  </div>
+  <div class="navbar">
+    <div class="nav-item" onclick="goTab('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="nav-lbl">Inicio</span></div>
+    <div class="nav-item" onclick="goTab('registro')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-lbl">Registrar</span></div>
+    <div class="nav-item" onclick="goTab('historial')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg><span class="nav-lbl">Historial</span></div>
+    <div class="nav-item active" onclick="goTab('config')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span class="nav-lbl">Config</span></div>
+  </div>
+</div>
+
+<!-- ══ MODALS ══ -->
+<div class="modal-overlay" id="modal-profile">
+  <div class="profile-modal">
+    <div class="modal-handle"></div>
+    <div class="profile-avatar-lg" id="profile-avatar-lg" style="background:var(--blue)">--</div>
+    <div class="profile-name-lg" id="profile-name-lg">—</div>
+    <div class="profile-role" id="profile-role-lg">—</div>
+    <div class="profile-row"><span>Usuario</span><span id="profile-id">—</span></div>
+    <div class="profile-row"><span>Área</span><span id="profile-area">—</span></div>
+    <div class="profile-row"><span>Último acceso</span><span id="profile-last">—</span></div>
+    <button class="btn btn-danger" style="margin-top:1rem" onclick="doLogout()">Cerrar sesión</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// ⚠️  REEMPLAZA ESTA URL CON TU NUEVA URL DE APPS SCRIPT
+// ══════════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLpWBgdHDBKXx-yXERO-aYYkRAO6eCgO_tss89Z3_XjS1ae-laZ1opIQyRD_I3vrmuiA/exec';
+
+const AVATAR_COLORS = ['#1a6fe8','#16a34a','#9333ea','#ea580c','#0891b2','#dc2626','#d97706'];
+
+// ══ STATE ══
+let currentUser  = null;
+let users        = [];
+let records      = [];
+let pendingRecords = [];
+let histFilter   = 'all';
+let isOnline     = navigator.onLine;
+let deferredPrompt = null;
+
+// ══ PWA INSTALL ══
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('pwa-banner').classList.add('show');
+});
+document.getElementById('pwa-install-btn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('pwa-banner').classList.remove('show');
+});
+
+// ══ INIT ══
+window.addEventListener('load', () => {
+  loadFromStorage();
+  updateOnlineStatus();
+  startClocks();
+  window.addEventListener('online',  () => { isOnline = true;  updateOnlineStatus(); syncPending(); });
+  window.addEventListener('offline', () => { isOnline = false; updateOnlineStatus(); });
+  if (isOnline) fetchUsersCache();
+  // Register service worker para PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+});
+
+function loadFromStorage() {
+  try {
+    const r = localStorage.getItem('attendpro_records');
+    if (r) records = JSON.parse(r);
+    const p = localStorage.getItem('attendpro_pending');
+    if (p) pendingRecords = JSON.parse(p);
+    const en = localStorage.getItem('attendpro_emergency');
+    if (en) document.getElementById('emergency-number').value = en;
+    const sess = localStorage.getItem('attendpro_session');
+    if (sess) { currentUser = JSON.parse(sess); enterApp(); }
+  } catch(e) {}
+}
+
+// ══ JSONP HELPER ══
+function fetchScript(params) {
+  return new Promise((resolve, reject) => {
+    const cbName = '_cb_' + Math.random().toString(36).substr(2, 8);
+    const timeout = setTimeout(() => {
+      delete window[cbName];
+      const el = document.getElementById(cbName);
+      if (el) el.remove();
+      reject(new Error('No se pudo conectar al servidor (timeout). Verifica que el script esté publicado correctamente.'));
+    }, 15000);
+
+    window[cbName] = function(data) {
+      clearTimeout(timeout);
+      delete window[cbName];
+      const el = document.getElementById(cbName);
+      if (el) el.remove();
+      resolve(data);
+    };
+
+    const url = SCRIPT_URL + '?' + new URLSearchParams({...params, callback: cbName}).toString();
+    const script = document.createElement('script');
+    script.id    = cbName;
+    script.src   = url;
+    script.onerror = () => {
+      clearTimeout(timeout);
+      delete window[cbName];
+      script.remove();
+      reject(new Error('No se pudo conectar al servidor. Verifica la URL del script y que esté publicado para "Cualquier persona".'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+// ══ AUTH ══
+function showLoginScreen() {
+  hideErrors();
+  showScreen('screen-login');
+}
+function showRegisterScreen() {
+  hideErrors();
+  showScreen('screen-register');
+}
+function hideErrors() {
+  ['login-error','reg-error','reg-ok'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = 'none'; el.textContent = ''; }
+  });
+}
+
+// ══ LOGIN ══
+async function doLogin() {
+  const user = document.getElementById('inp-user').value.trim();
+  const pass = document.getElementById('inp-pass').value.trim();
+  hideErrors();
+  if (!user || !pass) { showToast('Ingresa usuario y contraseña'); return; }
+
+  const btn = document.getElementById('btn-login');
+  const txt = document.getElementById('btn-login-text');
+  btn.disabled = true;
+  txt.innerHTML = '<span class="spinner"></span> Verificando...';
+
+  let found = null;
+
+  // Intentar online primero
+  if (isOnline) {
+    try {
+      const data = await fetchScript({ action: 'login', user, pass });
+      if (data.success) found = data.user;
+    } catch(e) {}
+  }
+
+  // Fallback a caché local
+  if (!found) {
+    try {
+      const cache = localStorage.getItem('attendpro_users_cache');
+      if (cache) {
+        const cached = JSON.parse(cache);
+        found = cached.find(u =>
+          u.user && u.user.toLowerCase() === user.toLowerCase() && u.pass === pass
+        );
+      }
+    } catch(e) {}
+  }
+
+  btn.disabled = false;
+  txt.textContent = '→ Iniciar sesión';
+
+  if (!found) {
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+
+  currentUser = found;
+  localStorage.setItem('attendpro_session', JSON.stringify(found));
+  enterApp();
+}
+
+// ══ GENERADOR DE USUARIO ══
+function quitarAcentos(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function generarUsuario() {
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const area   = document.getElementById('reg-area').value.trim();
+  if (!nombre) { document.getElementById('reg-user').value = ''; return; }
+  const partes = quitarAcentos(nombre).toLowerCase().replace(/[^a-z0-9\s]/g,'').trim().split(/\s+/);
+  const areaNorm = area ? quitarAcentos(area).toLowerCase().replace(/[^a-z0-9\s]/g,'').trim().replace(/\s+/g,'_') : '';
+  const parts = areaNorm ? [...partes, areaNorm] : partes;
+  document.getElementById('reg-user').value = parts.join('_');
+}
+
+// ══ REGISTRO DE USUARIO NUEVO ══
+async function doRegisterUser() {
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const area   = document.getElementById('reg-area').value.trim();
+  const user   = document.getElementById('reg-user').value.trim();
+  const pass   = document.getElementById('reg-pass').value.trim();
+
+  const errEl = document.getElementById('reg-error');
+  const okEl  = document.getElementById('reg-ok');
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  if (!nombre || !area || !pass) {
+    errEl.textContent = 'Por favor llena nombre, área y contraseña.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (pass.length < 4) {
+    errEl.textContent = 'La contraseña debe tener al menos 4 caracteres.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!isOnline) {
+    errEl.textContent = 'Necesitas conexión a internet para crear tu cuenta.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('btn-register');
+  const txt = document.getElementById('btn-reg-text');
+  btn.disabled = true;
+  txt.innerHTML = '<span class="spinner"></span> Creando cuenta...';
+
+  try {
+    const data = await fetchScript({ action: 'register', nombre, user, pass, role: area });
+    btn.disabled = false;
+    txt.textContent = '✓ Crear mi cuenta';
+
+    if (data.success) {
+      okEl.textContent = `¡Cuenta creada! Tu usuario es: ${user}`;
+      okEl.style.display = 'block';
+      ['reg-nombre','reg-area','reg-user','reg-pass'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      fetchUsersCache();
+      setTimeout(() => showLoginScreen(), 2500);
+    } else {
+      errEl.textContent = data.error || 'No se pudo crear la cuenta. Intenta de nuevo.';
+      errEl.style.display = 'block';
+    }
+  } catch(e) {
+    btn.disabled = false;
+    txt.textContent = '✓ Crear mi cuenta';
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('attendpro_session');
+  currentUser = null;
+  closeModal('modal-profile');
+  showScreen('screen-login');
+}
+
+function enterApp() {
+  updateTopbar();
+  updateDashboard();
+  showScreen('screen-dashboard');
+  if (isOnline) fetchUsersCache();
+}
+
+// ══ CACHE DE USUARIOS ══
+async function fetchUsersCache() {
+  try {
+    const data = await fetchScript({ action: 'getUsers' });
+    if (data.users) {
+      users = data.users;
+      localStorage.setItem('attendpro_users_cache', JSON.stringify(users));
+    }
+  } catch(e) {}
+}
+
+// ══ TEST DE CONEXIÓN ══
+async function testConnection() {
+  const el = document.getElementById('sheets-connection-status');
+  el.textContent = 'Probando...';
+  try {
+    const data = await fetchScript({ action: 'getUsers' });
+    if (data.users !== undefined) {
+      el.textContent = '✅ Conectado · ' + data.users.length + ' usuarios';
+    } else {
+      el.textContent = '⚠️ Respuesta inesperada';
+    }
+  } catch(e) {
+    el.textContent = '❌ ' + e.message;
+  }
+}
+
+// ══ NAVIGATION ══
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goTab(tab) {
+  const map = { dashboard:'screen-dashboard', registro:'screen-registro', historial:'screen-historial', config:'screen-config' };
+  showScreen(map[tab]);
+  if (tab === 'historial') renderHistory();
+  if (tab === 'dashboard') updateDashboard();
+}
+
+// ══ TOPBAR ══
+function updateTopbar() {
+  if (!currentUser) return;
+  const now = new Date();
+  const h   = now.getHours();
+  const greeting = h < 12 ? 'Buenos días,' : h < 19 ? 'Buenas tardes,' : 'Buenas noches,';
+  const rawName  = currentUser.user || currentUser.nombre || '';
+  const name     = rawName.split(/[._@]/).map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ').trim();
+  document.getElementById('tb-greeting').textContent = greeting;
+  document.getElementById('tb-name').textContent     = name;
+  const days   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  document.getElementById('tb-date').textContent = `${days[now.getDay()]} ${now.getDate()} de ${months[now.getMonth()]}`;
+  const initials = name.split(' ').map(w=>w[0]).join('').substr(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent          = initials;
+  document.getElementById('cfg-username').textContent         = name;
+  document.getElementById('cfg-usersub').textContent          = currentUser.role || currentUser.area || '—';
+  document.getElementById('profile-name-lg').textContent      = name;
+  document.getElementById('profile-role-lg').textContent      = currentUser.role || currentUser.area || '—';
+  document.getElementById('profile-id').textContent           = currentUser.user || '—';
+  document.getElementById('profile-area').textContent         = currentUser.role || currentUser.area || '—';
+  document.getElementById('profile-last').textContent         = now.toLocaleDateString('es-MX');
+  const avatarEl = document.getElementById('profile-avatar-lg');
+  avatarEl.textContent   = initials;
+  avatarEl.style.background = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+}
+
+// ══ DASHBOARD ══
+function updateDashboard() {
+  const today    = new Date().toDateString();
+  const todayRecs= records.filter(r => new Date(r.timestamp).toDateString() === today);
+  const entradas = todayRecs.filter(r => r.type === 'entrada');
+  const total    = Math.max(users.length, 1);
+  const presentes= entradas.length;
+  const ausentes = Math.max(0, total - presentes);
+
+  document.getElementById('stat-presentes').textContent  = presentes;
+  document.getElementById('stat-ausentes').textContent   = ausentes;
+  document.getElementById('stat-pendientes').textContent = pendingRecords.length;
+
+  const pct = Math.round((presentes / total) * 100);
+  document.getElementById('bar-pct').textContent  = pct + '%';
+  document.getElementById('bar-fill').style.width = pct + '%';
+  document.getElementById('bar-sub').textContent  = `${presentes} / ${total} colaboradores · ${pct}% hoy`;
+
+  document.querySelectorAll('#offline-topbadge').forEach(b => {
+    b.style.display = !isOnline ? 'flex' : 'none';
+  });
+
+  renderRecentList(todayRecs.slice(-5).reverse());
+}
+
+function renderRecentList(recs) {
+  const el = document.getElementById('recent-list');
+  if (!recs.length) {
+    el.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--gray-400);font-size:.85rem">Sin registros hoy</div>';
+    return;
+  }
+  el.innerHTML = recs.map(r => {
+    const initials   = r.name.split(' ').map(w=>w[0]).join('').substr(0,2).toUpperCase();
+    const color      = AVATAR_COLORS[r.name.charCodeAt(0) % AVATAR_COLORS.length];
+    const time       = new Date(r.timestamp).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+    const badgeClass = r.type === 'entrada' ? 'badge-in' : 'badge-out';
+    return `<div class="record-item">
+      <div class="record-avatar" style="background:${color}20;color:${color}">${initials}</div>
+      <div class="record-info"><div class="record-name">${r.name}</div><div class="record-time">${time} · ${r.role||''}</div></div>
+      <div class="badge ${badgeClass}">${r.type==='entrada'?'Entrada':'Salida'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══ REGISTRO ASISTENCIA ══
+let foundUserObj = null;
+function getAllUsers() {
+  const allUsers = [...users];
+  try {
+    const cache = localStorage.getItem('attendpro_users_cache');
+    if (cache) {
+      const c = JSON.parse(cache);
+      c.forEach(u => { if (!allUsers.find(x=>x.user===u.user)) allUsers.push(u); });
+    }
+  } catch(e) {}
+  return allUsers;
+}
+
+function searchUser(val) {
+  const card = document.getElementById('found-user-card');
+  if (!val || val.length < 2) { card.style.display = 'none'; return; }
+  const found = getAllUsers().find(u =>
+    u.user && u.user.toLowerCase().includes(val.toLowerCase())
+  );
+  if (!found) { card.style.display = 'none'; return; }
+  foundUserObj = found;
+  const name     = formatName(found.user);
+  const initials = name.split(' ').map(w=>w[0]).join('').substr(0,2).toUpperCase();
+  const color    = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+  const lastRec  = records.filter(r => r.name === name).pop();
+  const inside   = lastRec?.type === 'entrada';
+  const av = document.getElementById('fu-avatar');
+  av.textContent = initials; av.style.background = color+'20'; av.style.color = color;
+  document.getElementById('fu-name').textContent   = name;
+  document.getElementById('fu-role').textContent   = found.role || found.area || '';
+  document.getElementById('fu-dot').style.background = inside ? 'var(--green)' : 'var(--gray-300)';
+  document.getElementById('fu-status').textContent = inside ? 'Dentro' : 'Fuera';
+  card.style.display = 'block';
+}
+
+function doRegister(type) {
+  if (!foundUserObj) return;
+  const name = formatName(foundUserObj.user);
+  saveRecord({ name, role: foundUserObj.role || foundUserObj.area, type, timestamp: new Date().toISOString(), synced: isOnline });
+  showToast(`✓ ${type==='entrada'?'Entrada':'Salida'} — ${name}`);
+  document.getElementById('search-user').value = '';
+  document.getElementById('found-user-card').style.display = 'none';
+  foundUserObj = null;
+  updateDashboard();
+}
+
+async function doManualRegister(type) {
+  const user    = document.getElementById('manual-user').value.trim();
+  const pass    = document.getElementById('manual-pass').value.trim();
+  const timeVal = document.getElementById('manual-time').value;
+  if (!user || !pass) { showToast('Ingresa usuario y contraseña'); return; }
+
+  const found = getAllUsers().find(u => u.user && u.user.toLowerCase() === user.toLowerCase() && u.pass === pass);
+  if (!found) { showToast('❌ Usuario o contraseña incorrectos'); return; }
+
+  let ts = new Date();
+  if (timeVal) {
+    ts.setHours(parseInt(timeVal.split(':')[0]));
+    ts.setMinutes(parseInt(timeVal.split(':')[1]));
+    ts.setSeconds(0);
+  }
+  const name = formatName(found.user);
+  saveRecord({ name, role: found.role || found.area, type, timestamp: ts.toISOString(), synced: isOnline });
+  showToast(`✓ ${type==='entrada'?'Entrada':'Salida'} — ${name}`);
+  document.getElementById('manual-user').value = '';
+  document.getElementById('manual-pass').value = '';
+  document.getElementById('manual-time').value = '';
+  updateDashboard();
+}
+
+// ══ HELPERS ══
+function formatName(user) {
+  return (user || '').split(/[._@]/).map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ').trim();
+}
+
+// ══ RECORD SAVE ══
+function saveRecord(rec) {
+  records.push(rec);
+  if (!isOnline) pendingRecords.push({...rec, synced: false});
+  else sendToSheets(rec);
+  saveAll();
+}
+function saveAll() {
+  localStorage.setItem('attendpro_records', JSON.stringify(records));
+  localStorage.setItem('attendpro_pending', JSON.stringify(pendingRecords));
+}
+
+async function sendToSheets(rec) {
+  try {
+    const params = {
+      action:    'addRecord',
+      name:      rec.name,
+      role:      rec.role || '',
+      type:      rec.type,
+      timestamp: rec.timestamp
+    };
+    const data = await fetchScript(params);
+    if (data && data.success !== false) {
+      rec.synced = true; saveAll();
+    } else {
+      pendingRecords.push({...rec, synced: false}); saveAll();
+    }
+  } catch(e) {
+    pendingRecords.push({...rec, synced: false}); saveAll();
+  }
+}
+
+async function syncPending() {
+  if (!isOnline || !pendingRecords.length) return;
+  const toSync = [...pendingRecords];
+  const synced = [];
+  for (const rec of toSync) {
+    try {
+      const params = {
+        action:    'addRecord',
+        name:      rec.name,
+        role:      rec.role || '',
+        type:      rec.type,
+        timestamp: rec.timestamp
+      };
+      const data = await fetchScript(params);
+      if (data && data.success !== false) {
+        synced.push(rec);
+      }
+    } catch(e) {}
+  }
+  if (synced.length) {
+    pendingRecords = pendingRecords.filter(r => !synced.includes(r));
+    saveAll();
+    showToast(`✓ ${synced.length} registros sincronizados`);
+  }
+}
+
+// ══ HISTORIAL ══
+function renderHistory() {
+  const today     = new Date().toDateString();
+  const syncLabel = document.getElementById('hist-sync-label');
+  syncLabel.textContent = `${records.filter(r=>new Date(r.timestamp).toDateString()===today).length} registros · ${isOnline?'En línea':'Offline'}`;
+  let recs = [...records];
+  if (histFilter === 'entrada')  recs = recs.filter(r => r.type === 'entrada');
+  else if (histFilter === 'salida')  recs = recs.filter(r => r.type === 'salida');
+  else if (histFilter === 'pending') recs = recs.filter(r => !r.synced);
+  const search = document.getElementById('hist-search').value.toLowerCase();
+  if (search) recs = recs.filter(r => r.name.toLowerCase().includes(search));
+  recs = recs.slice().reverse();
+  const el = document.getElementById('hist-list');
+  if (!recs.length) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray-400);font-size:.85rem">Sin registros</div>';
+    return;
+  }
+  el.innerHTML = recs.map(r => {
+    const initials   = r.name.split(' ').map(w=>w[0]).join('').substr(0,2).toUpperCase();
+    const color      = AVATAR_COLORS[r.name.charCodeAt(0) % AVATAR_COLORS.length];
+    const dt         = new Date(r.timestamp);
+    const time       = dt.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+    const date       = dt.toLocaleDateString('es-MX',{month:'short',day:'numeric'});
+    const badgeClass = r.type === 'entrada' ? 'badge-in' : 'badge-out';
+    const pending    = r.synced === false ? '<span class="hist-badge-pending">Pendiente sync</span>' : '';
+    return `<div class="hist-item">
+      <div style="background:${color}20;color:${color};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.72rem;flex-shrink:0">${initials}</div>
+      <div class="hist-info"><div class="hist-name">${r.name}</div><div class="hist-time">${time} · ${date} · ${r.role||''} ${pending}</div></div>
+      <div class="badge ${badgeClass}">${r.type==='entrada'?'Entrada':'Salida'}</div>
+    </div>`;
+  }).join('');
+}
+function setHistFilter(f) {
+  histFilter = f;
+  ['all','in','out','pend'].forEach(k => document.getElementById('tab-'+k).classList.remove('active'));
+  const map = {all:'tab-all',entrada:'tab-in',salida:'tab-out',pending:'tab-pend'};
+  document.getElementById(map[f]).classList.add('active');
+  renderHistory();
+}
+function filterHistory() { renderHistory(); }
+
+// ══ CLOCKS ══
+function startClocks() {
+  setInterval(() => {
+    updateTopbar();
+  }, 60000);
+}
+
+// ══ ONLINE STATUS ══
+function updateOnlineStatus() {
+  const dot   = document.getElementById('online-dot');
+  const label = document.getElementById('online-label');
+  if (dot)   dot.className = 'dot' + (isOnline ? '' : ' offline');
+  if (label) label.textContent = isOnline ? 'Sistema en línea' : 'Sin conexión · modo offline';
+}
+
+// ══ WHATSAPP ══
+function openWhatsApp() {
+  const num  = document.getElementById('emergency-number').value.replace(/\D/g,'') || '522219026169';
+  const user = currentUser ? formatName(currentUser.user) : 'Usuario';
+  const msg  = encodeURIComponent(`Hola, soy ${user}. Necesito reportar una incidencia desde AttendPro.`);
+  window.open(`https://wa.me/${num}?text=${msg}`, '_blank');
+}
+function saveEmergencyNumber() {
+  localStorage.setItem('attendpro_emergency', document.getElementById('emergency-number').value.trim());
+  showToast('✓ Número guardado');
+}
+
+// ══ MODALS ══
+function openProfile() { document.getElementById('modal-profile').classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m =>
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); })
+);
+
+// ══ TOAST ══
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Enter keys
+document.getElementById('inp-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('inp-user').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('inp-pass').focus(); });
+document.getElementById('reg-pass').addEventListener('keydown', e => { if(e.key==='Enter') doRegisterUser(); });
+</script>
+</body>
+</html>
